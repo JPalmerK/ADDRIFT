@@ -1,0 +1,13 @@
+Annotation Procedu
+Logger Form Name: humpback_gray
+Species Values
+
+Add lookup table
+Title, post title, db title, topic = Species
+
+Codes/Text
+Hmp
+HmpSng
+HmpSoc
+Gray
+Other
