@@ -218,5 +218,19 @@ ragg::agg_jpeg("DrifterRegionsTable.jpg",
                units = "cm", res = 300)
 print(stable.p)
 dev.off()
+#################################################################
+# Shannon's code for combining the images
+##################################################################
+library(magick)
+regionMap <- magick::image_read(here("output/DrifterRegions.jpg"))%>%
+  image_scale("450")%>%
+  image_border("white", "10x20")
+regionTable <- magick::image_read(here("output/DrifterRegionsTable.jpg"))%>%
+  image_scale("1100")%>%
+  image_trim(fuzz = 0) %>%
+  image_border("white","10x45")
 
+DrifterRegionFigure <- image_append(c(regionMap, regionTable))
 
+print(DrifterRegionFigure, info=FALSE)
+image_write(DrifterRegionFigure, path = here("figs/DrifterRegions.jpg"), format = "jpg")
