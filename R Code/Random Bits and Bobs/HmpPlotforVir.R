@@ -14,9 +14,11 @@ source("~/GitHub/ADRIFT_Report/R/reportPlotFunctions.R")
 # to each package then use the following lines to build the tar files
 # library(devtools)
 # build()
+
+
 # I'm not sure how to get this to overwrite the existing packages
-
-
+# I also have to comment out the the first several lines of the reportPlotFunctions
+# which check the installed version. 
 
 
 # load the humpback data that Taiki's code injested, detections, gps, effort
