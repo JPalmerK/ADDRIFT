@@ -1,22 +1,47 @@
-
+rm(list=ls())
+library(here)
 library(marmap)
-# this code plots the 
 
-# load the humpback data that Taiki's code injested
-hmpData_all <- readRDS(here('data/humpback/humpbackDataFinal.rds'))
+
+# Load Taiki's compiled updated versions of pampal and pamscapes needed to 
+# use his report plots
+
+install.packages("~/GitHub/PAMpal_1.0.6.tar.gz", repos = NULL, type = "source")
+install.packages("~/GitHub/PAMscapes_0.5.7.tar.gz", repos = NULL, type = "source")
+source("~/GitHub/ADRIFT_Report/R/reportPlotFunctions.R")
+
+# To compile them the first time, clone from git hub set working directory
+# to each package then use the following lines to build the tar files
+# library(devtools)
+# build()
+# I'm not sure how to get this to overwrite the existing packages
+
+
+
+
+# load the humpback data that Taiki's code injested, detections, gps, effort
+allGPS<-readRDS("~/GitHub/ADRIFT_Report/data/AllDeploymentGPS.rds")
+humpbackDataFinal <- readRDS("~/GitHub/ADRIFT_Report/data/humpback/humpbackDataFinal.rds")
+AllDrifts_BaseEffort <- readRDS("~/GitHub/ADRIFT_Report/data/AllDrifts_BaseEffort.rds")
 
 # Create names for the morro bay adrift numbers then pull them out
 # this should be combined in the filter or subset functions above
 completedDrifts <- paste0('ADRIFT_', sprintf("%03d", 46:53))
-MorroBayHMP = subset(hmpData_all, DriftName %in% completedDrifts,
-                     species == 'humpback')
 
+MorroBayHMP = subset(humpbackDataFinal, 
+                     DriftName %in% completedDrifts & 
+                       species == 'humpback')
 # GPS data
-MorroBayGps = subset(gps, DriftName %in% completedDrifts)
+MorroBayGps = subset(allGPS, DriftName %in% completedDrifts)
+
+# Effort Data
+MorroBayEffort =  subset(AllDrifts_BaseEffort, DriftName %in% completedDrifts)
+MorroBayeffortHourly <- effortToBins(MorroBayEffort, bin='hour')
+
 
 # Create the binning in Taiki's formatting
 MorroBayHMPBinnedSng = formatBinnedPresence(mutate(MorroBayHMP, call='song'),
-                     effort=effortHourly_adrift, 
+                     effort=MorroBayeffortHourly, 
                      bin='hour', 
                      gps=MorroBayGps)
 
