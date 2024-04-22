@@ -85,9 +85,7 @@ for(ii in 1:nrow(AllDeployments)){
   errorVal <-tryCatch(
     EventInfo<-read.table(file.path(annLoc, paste0(depName, '.txt')),
                           sep = '\t', header = TRUE),
-    error=function(e) e
-    
-  )
+    error=function(e) e)
   
   if(!inherits(errorVal, "error")){
     EventInfo<-read.table(file.path(annLoc, paste0(depName, '.txt')),
@@ -126,7 +124,7 @@ for(ii in 1:nrow(AllDeployments)){
     
     #Translate species codes from Barlow to NOAA.NMFS.v1
     EventInfo$species<-recode_factor(EventInfo$species,HmpSng="Mn",Hmp="Mn",
-                                     HmpSoc="Mn", Gray="Er")
+                                     HmpSoc="Mn", Gray="Er", gray ='Er')
     
     
     
