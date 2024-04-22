@@ -99,10 +99,6 @@ gridArea <- gridArea %>%
 # Create the proper plot
 ggplot()+
   geom_tile(data = gridArea, aes(x=Lon, y=Lat, fill = depth))+
-  # scale_fill_gradientn(values = scales::rescale(c(-4000, -2000, -1000,-500, 0)),
-  #                      colors = c("midnightblue", "royalblue3", 
-  #                                 "grey40","grey50", "grey80"),
-  #                      name="Depth (m)")+
   geom_path(data = MorroBayGps, aes(x=Longitude, y=Latitude, 
                                     group= DriftName))+
   geom_point(data= MorroBayHMPBinnedSng, aes(x= Longitude,

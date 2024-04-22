@@ -46,10 +46,19 @@ if(is.character(AllDeployments$Data_Start)){
 if(is.character(AllDeployments$Data_End)){
   AllDeployments$Data_End<-openxlsx::convertToDateTime(AllDeployments$Data_End)}
 #All dates and datetimes must be saved as POSIXct for Tethys to understand them
-AllDeployments$Deployment_Date<-as.POSIXct(AllDeployments$Deployment_Date,'%m/%d/%Y %H:%M:%S',tz='UTC')
-AllDeployments$Recovery_Date<-as.POSIXct(AllDeployments$Recovery_Date,'%m/%d/%Y% H:%M:%S',tz='UTC')
-AllDeployments$Data_Start<-as.POSIXct(AllDeployments$Data_Start,"%m/%d/%Y %H:%M:%S",tz='UTC')
-AllDeployments$Data_End<-as.POSIXct(AllDeployments$Data_End,"%m/%d/%Y %H:%M:%S",tz='UTC')
+AllDeployments$Deployment_Date<-as.POSIXct(AllDeployments$Deployment_Date,'%m/%d/%Y %H:%M:%S',tz='America/Los_Angeles')
+AllDeployments$Recovery_Date<-as.POSIXct(AllDeployments$Recovery_Date,'%m/%d/%Y% H:%M:%S',tz='America/Los_Angeles')
+AllDeployments$Data_Start<-as.POSIXct(AllDeployments$Data_Start,"%m/%d/%Y %H:%M:%S",tz='America/Los_Angeles')
+AllDeployments$Data_End<-as.POSIXct(AllDeployments$Data_End,"%m/%d/%Y %H:%M:%S",tz='America/Los_Angeles')
+
+
+# Now convert completed timezones to UTC
+AllDeployments$Deployment_Date<-with_tz(AllDeployments$Deployment_Date, "UTC")
+AllDeployments$Recovery_Date<-with_tz(AllDeployments$Recovery_Date, "UTC")
+AllDeployments$Data_Start<-with_tz(AllDeployments$Data_Start, "UTC")
+AllDeployments$Data_End<-with_tz(AllDeployments$Data_End, "UTC")
+
+
 
 AllDeployments<-AllDeployments %>%
   mutate(Depth_Sensor=as.numeric(Depth_Sensor),
