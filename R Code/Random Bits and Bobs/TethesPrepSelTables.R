@@ -7,11 +7,11 @@ rm(list = ls())
 source("~/GitHub/ADRIFT/R Code/Random Bits and Bobs/Tethes.R")
 
 
-DepDir = "C:/Users/kaitlin.palmer/Documents/GitHub/ADRIFT/R Code/Random Bits and Bobs"
+DepDir =  "C://Users//kaitlin.palmer//Documents//GitHub//ADRIFT//R Code//Random Bits and Bobs"
 
-# Create a deployment worksheet
-wrkshtPath <-makeTethysDep(ProjectID = 'ADRIFT',DepID = '003', DepDir, 
-                           gpsBaseDir = 'Z:\\METADATA\\ADRIFT')
+# # Create a deployment worksheet
+# wrkshtPath <-makeTethysDep(ProjectID = 'ADRIFT',DepID = '003', DepDir, 
+#                            gpsBaseDir = 'Z:\\METADATA\\ADRIFT')
 
 
 
@@ -35,8 +35,9 @@ annLoc ='C:\\Users\\kaitlin.palmer\\Documents\\GitHub\\databackup\\SelectonTable
 AllDeployments<-xlsx::read.xlsx(file.path(DepDir, 'Deployment Details.xlsx'),
                                 sheetName='deployDetails')
 
-#Correct Date/Time formats
-#Dates and times may be read in as characters if NAs are present
+
+
+## Correct Date/Time formats
 if(is.character(AllDeployments$Deployment_Date)){
   AllDeployments$Deployment_Date<-openxlsx::convertToDateTime(AllDeployments$Deployment_Date)}
 if(is.character(AllDeployments$Recovery_Date)){
@@ -45,23 +46,22 @@ if(is.character(AllDeployments$Data_Start)){
   AllDeployments$Data_Start<-openxlsx::convertToDateTime(AllDeployments$Data_Start)}
 if(is.character(AllDeployments$Data_End)){
   AllDeployments$Data_End<-openxlsx::convertToDateTime(AllDeployments$Data_End)}
-#All dates and datetimes must be saved as POSIXct for Tethys to understand them
-AllDeployments$Deployment_Date<-as.POSIXct(AllDeployments$Deployment_Date,'%m/%d/%Y %H:%M:%S',tz='UTC')
-AllDeployments$Recovery_Date<-as.POSIXct(AllDeployments$Recovery_Date,'%m/%d/%Y% H:%M:%S',tz='UTC')
-AllDeployments$Data_Start<-as.POSIXct(AllDeployments$Data_Start,"%m/%d/%Y %H:%M:%S",tz='UTC')
-AllDeployments$Data_End<-as.POSIXct(AllDeployments$Data_End,"%m/%d/%Y %H:%M:%S",tz='UTC')
-
-AllDeployments<-AllDeployments %>%
-  mutate(Depth_Sensor=as.numeric(Depth_Sensor),
-         Deployment_Latitude=as.numeric(Deployment_Latitude), 
-         Deployment_Longitude=as.numeric(Deployment_Longitude), 
-         Recovery_Latitude=as.numeric(Recovery_Latitude),
-         Recovery_Longitude=as.numeric(Recovery_Longitude),
-         SensorNumber_1=as.numeric(SensorNumber_1),
-         SensorNumber_2=as.numeric(SensorNumber_2),
-         SensorNumber_3=as.numeric(SensorNumber_3))
 
 
+# Clear out the missing data maybe that will make it stop fucking the fuck up
+AllDeployments<-AllDeployments[!is.na(AllDeployments$Recovery_Date),]
+
+## All dates and datetimes must be saved as POSIXct for Tethys to understand them
+AllDeployments$Deployment_Date<-as.POSIXct(AllDeployments$Deployment_Date,'%m/%d/%Y %H:%M:%S', tz='America/Los_Angeles')
+AllDeployments$Recovery_Date<-as.POSIXct(AllDeployments$Recovery_Date,'%m/%d/%Y% H:%M:%S', tz='America/Los_Angeles')
+AllDeployments$Data_Start<-as.POSIXct(AllDeployments$Data_Start,"%m/%d/%Y %H:%M:%S",tz='America/Los_Angeles')
+AllDeployments$Data_End<-as.POSIXct(AllDeployments$Data_End,"%m/%d/%Y %H:%M:%S", tz='America/Los_Angeles')
+
+# Need to make sure that date/times are formatted in UTC (force time zone change)
+AllDeployments$Deployment_Date <- force_tz(AllDeployments$Deployment_Date, tz='UTC')
+AllDeployments$Recovery_Date<-force_tz(AllDeployments$Recovery_Date, tz='UTC')
+AllDeployments$Data_Start<-force_tz(AllDeployments$Data_Start,tz='UTC')
+AllDeployments$Data_End<-force_tz(AllDeployments$Data_End, tz='UTC')
 
 AllDeployments$Exported = 0
 
@@ -87,7 +87,6 @@ for(ii in 1:nrow(AllDeployments)){
     
     
     Project<- AllDeployments$Project[ii]
-    #DepID<-sprintf("%03d",AllDeployments$DeploymentID[ii])
     DepID<-as.numeric(AllDeployments$DeploymentID[ii])
 
 
@@ -124,6 +123,25 @@ for(ii in 1:nrow(AllDeployments)){
       select(Data_Start,Data_End)%>%
       rename(EffortStart=Data_Start,
              EffortEnd=Data_End)
+    
+    
+    # Just skip detections outside of the effort
+    if(min(Effort$EffortStart)> min(EventInfo$UTC)){
+        
+      EventInfo<-EventInfo %>%
+        filter(UTC>= Effort$EffortStart)%>%
+        filter((UTC+ seconds(End.Time..s.- Begin.Time..s.))<= Effort$EffortEnd)
+      
+    }
+    
+    if(max(Effort$EffortEnd)< max(EventInfo$UTC)){
+    
+
+      EventInfo<-EventInfo %>%
+        filter(UTC>= Effort$EffortStart)%>%
+        filter((UTC+ seconds(End.Time..s.- Begin.Time..s.))<= Effort$EffortEnd)
+      
+    }
 
   
     
