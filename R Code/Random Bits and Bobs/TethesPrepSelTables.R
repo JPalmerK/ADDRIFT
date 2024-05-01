@@ -65,7 +65,10 @@ AllDeployments$Data_End<-force_tz(AllDeployments$Data_End, tz='UTC')
 
 AllDeployments$Exported = 0
 
-for(ii in 1:nrow(AllDeployments)){
+#modified files
+filesMod = c()
+
+for(ii in 55:nrow(AllDeployments)){
   
   
   #load deployment info
@@ -85,6 +88,8 @@ for(ii in 1:nrow(AllDeployments)){
     EventInfo$UTC = as.POSIXct(EventInfo$Begin.Date.Time,   
                                format = "%Y/%m/%d %H:%M:%S", tz = 'UTC')
     
+    EventInfo$EndTime = EventInfo$UTC+seconds(EventInfo$End.Time..s.- 
+                                                EventInfo$Begin.Time..s.)
     
     Project<- AllDeployments$Project[ii]
     DepID<-as.numeric(AllDeployments$DeploymentID[ii])
@@ -126,22 +131,16 @@ for(ii in 1:nrow(AllDeployments)){
     
     
     # Just skip detections outside of the effort
-    if(min(Effort$EffortStart)> min(EventInfo$UTC)){
-        
-      EventInfo<-EventInfo %>%
+      EventInfo1<-EventInfo %>%
         filter(UTC>= Effort$EffortStart)%>%
-        filter((UTC+ seconds(End.Time..s.- Begin.Time..s.))<= Effort$EffortEnd)
+        filter(EndTime<= Effort$EffortEnd)
       
-    }
-    
-    if(max(Effort$EffortEnd)< max(EventInfo$UTC)){
-    
+      # See which ones are actually kludged
+      if(nrow(EventInfo1)< nrow(EventInfo)){
+        filesMod = c(filesMod, depName)
+        EventInfo=EventInfo1
+      }
 
-      EventInfo<-EventInfo %>%
-        filter(UTC>= Effort$EffortStart)%>%
-        filter((UTC+ seconds(End.Time..s.- Begin.Time..s.))<= Effort$EffortEnd)
-      
-    }
 
   
     
@@ -178,17 +177,14 @@ for(ii in 1:nrow(AllDeployments)){
     
     
     gps$UTC=as.POSIXct(gps$UTC,tz = 'UTC')
-    Effort$EffortStart= gps$UTC[1]
-    Effort$EffortEnd=  tail(gps$UTC,1)
     
     # Create prediction function to estimate drifter location when whale calls
     UTMflon <- approxfun(gps$UTC, gps$Longitude)
     UTMflat <- approxfun(gps$UTC, gps$Latitude)
     
+    # Fill in predicted gps location at each
     EventInfo$Latitude <- UTMflat(EventInfo$UTC)
     EventInfo$Longitude <- UTMflon(EventInfo$UTC)
-    EventInfo$EndTime = EventInfo$UTC+seconds(EventInfo$End.Time..s.- 
-                                                EventInfo$Begin.Time..s.)
     
     
     #Create dataframes for each tab
